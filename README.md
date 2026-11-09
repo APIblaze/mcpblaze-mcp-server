@@ -7,13 +7,14 @@
 <p align="center">
   <strong>Get your API listed in Claude and ChatGPT.</strong><br>
   One command turns your OpenAPI spec into an MCP server with sign-in and per-user rules,
-  checks it against the directories' published requirements, and writes your submission.
+  checks it against the published requirements of the Claude Connectors Directory and the
+  ChatGPT Directory, and writes your submission.
 </p>
 
 <p align="center">
   <a href="https://mcpblaze.com">Website</a> ·
   <a href="https://www.npmjs.com/package/mcpblaze">npm</a> ·
-  <a href="https://www.apiblaze.com/docs#secure">Docs</a>
+  <a href="https://www.apiblaze.com/docs">Docs</a>
 </p>
 
 <p align="center">
@@ -22,15 +23,17 @@
 
 ## Quick start
 
-**In your terminal**, point the wizard at your OpenAPI spec (a URL or a local file):
+**In your terminal**, run the MCPblaze CLI's `connector` command on your OpenAPI spec (a URL or
+a local file). `npx` runs it, so there is nothing to install:
 
 ```bash
 npx mcpblaze@latest connector https://ninopizzas.com/openapi.yaml
 ```
 
-It creates the MCP server, then walks you through every open step of the Claude connector
-checklist (add `--compliant chatgpt` for a ChatGPT plugin) and links the scorecard page where you
-can finish. Stop any time: `npx mcpblaze connector <name> --status` shows what is left.
+It creates the MCP server, then walks you through every open step of the Claude Connectors
+Directory checklist (add `--compliant chatgpt` for the ChatGPT Directory) and links the scorecard
+page where you can finish. Stop any time: `npx mcpblaze connector <name> --status` shows what is
+left.
 
 Only want the MCP server? `npx mcpblaze create --target ./openapi.yaml` makes one at
 `https://<name>-<tenant>.mcpblaze.com/1.0.0/dev`. No login needed.
@@ -44,7 +47,7 @@ claude mcp add --transport http mcpblaze https://mcp.mcpblaze.com
 Run `/mcp` in Claude Code and pick **mcpblaze** to sign in with GitHub. Then ask:
 
 > Make an MCP server from https://ninopizzas.com/openapi.yaml and lock reservations to whoever
-> made them. Then tell me what is left before I can submit it to the Claude directory.
+> made them. Then tell me what is left before I can submit it to the Claude Connectors Directory.
 
 Want to see it first? `npx mcpblaze demo` runs a small booking app on your machine with an MCP
 server in front of it.
@@ -109,7 +112,8 @@ From then on:
 
 ## Getting listed in Claude and ChatGPT
 
-`npx mcpblaze connector <name>` takes an MCP server through the directory checklist: your own
+`npx mcpblaze connector <name>` takes an MCP server through the Claude Connectors Directory
+checklist: your own
 MCP hostname (one CNAME), sign-in on the connector, the listing answers pre-filled from your
 spec, a reviewer account, a proof run that calls every tool, and the submission packet you paste
 into each portal. It asks only for what is missing, saves every answer as you give it, and says
@@ -118,7 +122,7 @@ what is left at every step, in the terminal and on the scorecard page it links.
 - `npx mcpblaze connector <name> --status` shows the scorecard and the page to finish on.
 - `npx mcpblaze check <name> --directory-ready` prints the full readiness report: every blocker,
   with its fix.
-- Add `--compliant chatgpt` for a ChatGPT plugin.
+- Add `--compliant chatgpt` to prepare it for the ChatGPT Directory instead.
 
 Passing the checks means the MCP server meets the requirements we can verify. You submit.
 Anthropic and OpenAI decide.
@@ -129,14 +133,14 @@ What your agent can do once it is connected to `https://mcp.mcpblaze.com`:
 
 | Tool | What it does |
 |---|---|
-| `list_mcp_servers` | Lists your MCP servers: name, connector URL, status, and the scorecard page when one is being prepared for a directory. |
+| `list_mcp_servers` | Lists your MCP servers: name, connector URL, status, and the scorecard page when one is being prepared for the Claude or ChatGPT Directory. |
 | `get_mcp_server` | Describes one MCP server in full: its URLs, how callers get in, its access rules and its admins. |
 | `propose_access_rules` | Reads an OpenAPI spec and says, in plain sentences, which records can be locked to the person who created them. |
-| `create_mcp_server` | Creates an MCP server from an OpenAPI spec with the rules you approved, optionally prepared for the Claude and ChatGPT directories, and returns its connector URL and scorecard page. |
+| `create_mcp_server` | Creates an MCP server from an OpenAPI spec with the rules you approved, optionally prepared for the Claude Connectors Directory and the ChatGPT Directory, and returns its connector URL and scorecard page. |
 | `apply_access_rules` | Changes the ownership rules on an existing MCP server, or switches them off. |
 | `update_mcp_server` | Changes a server's name, target URL or on/off switch, or edits its tools (hide, rename, describe). |
 | `delete_mcp_server` | Deletes an MCP server and everything attached to it, only after you say yes: it cannot be undone. |
-| `get_readiness` | Says where an MCP server stands on the way to the Claude or ChatGPT directory: steps done out of 12, whether it is ready to submit, and the next step. |
+| `get_readiness` | Says where an MCP server stands on the way to the Claude Connectors Directory or the ChatGPT Directory: steps done out of 12, whether it is ready to submit, and the next step. |
 
 The details (DNS, the listing fields, the reviewer account, the packet) are finished on the
 scorecard page or with `npx mcpblaze connector`.
@@ -224,7 +228,7 @@ in its output:
 
 ## About this repository
 
-This repository holds MCPblaze's documentation and directory-listing files. The MCP server itself
+This repository holds MCPblaze's documentation and its MCP Registry entry (`server.json`). The MCP server itself
 is hosted at `https://mcp.mcpblaze.com`, and the CLI is published on npm as
 [`mcpblaze`](https://www.npmjs.com/package/mcpblaze). MCPblaze is built by
 [APIblaze](https://www.apiblaze.com). Questions: support@apiblaze.com.
