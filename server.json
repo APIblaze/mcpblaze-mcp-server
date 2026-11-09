@@ -1,0 +1,25 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "com.mcpblaze/mcpblaze",
+  "title": "MCPblaze",
+  "description": "Turn your API into an MCP server with sign-in and per-user rules, ready for Claude and ChatGPT.",
+  "version": "1.0.0",
+  "websiteUrl": "https://mcpblaze.com",
+  "repository": {
+    "url": "https://github.com/APIblaze/mcpblaze-mcp-server",
+    "source": "github"
+  },
+  "icons": [
+    {
+      "src": "https://raw.githubusercontent.com/APIblaze/mcpblaze-mcp-server/main/assets/logo.png",
+      "mimeType": "image/png",
+      "sizes": ["400x400"]
+    }
+  ],
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://mcp.mcpblaze.com"
+    }
+  ]
+}
