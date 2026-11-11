@@ -133,73 +133,23 @@ What your agent can do once it is connected to `https://mcp.mcpblaze.com`:
 
 | Tool | What it does |
 |---|---|
-| `list_mcp_servers` | Lists your MCP servers: name, connector URL, status, and the scorecard page when one is being prepared for the Claude or ChatGPT Directory. |
+| `list_mcp_servers` | Lists your MCP servers: name, URLs, status, and how callers get in. |
 | `get_mcp_server` | Describes one MCP server in full: its URLs, how callers get in, its access rules and its admins. |
 | `propose_access_rules` | Reads an OpenAPI spec and says, in plain sentences, which records can be locked to the person who created them. |
-| `create_mcp_server` | Creates an MCP server from an OpenAPI spec with the rules you approved, optionally prepared for the Claude Connectors Directory and the ChatGPT Directory, and returns its connector URL and scorecard page. |
-| `apply_access_rules` | Changes the ownership rules on an existing MCP server, or switches them off. |
-| `update_mcp_server` | Changes a server's name, target URL or on/off switch, or edits its tools (hide, rename, describe). |
-| `delete_mcp_server` | Deletes an MCP server and everything attached to it, only after you say yes: it cannot be undone. |
-| `get_readiness` | Says where an MCP server stands on the way to the Claude Connectors Directory or the ChatGPT Directory: steps done out of 12, whether it is ready to submit, and the next step. |
+| `create_mcp_server` | Creates an MCP server from an OpenAPI spec, locking the record families you choose (every one it can lock if you leave the list out; an empty list locks none), and returns its connector URL. It can also prepare the server for the Claude Connectors Directory and the ChatGPT Directory, and then returns its scorecard page too. |
+| `apply_access_rules` | Locks more record families to the person who created them on an existing MCP server, or switches all its rules off. Send the families locked now plus any new ones: leaving one out does not unlock it (its records can no longer be read or changed by anyone). To switch every rule off, send no families with `enforce` false. |
+| `update_mcp_server` | Changes a server's display name, target URL or on/off switch, or edits its tools (hide, rename, describe). |
+| `delete_mcp_server` | Deletes an MCP server and everything attached to it. It needs an explicit confirmation, and it cannot be undone. |
+| `get_readiness` | Says where an MCP server stands on the way to the Claude Connectors Directory or the ChatGPT Directory: how many of its steps are done, whether it is ready to submit, and the next step. |
 
 The details (DNS, the listing fields, the reviewer account, the packet) are finished on the
 scorecard page or with `npx mcpblaze connector`.
 
-## Connect from other clients
+## Connect from Claude Desktop or claude.ai
 
 `https://mcp.mcpblaze.com` uses Streamable HTTP and signs you in with GitHub through standard MCP
-OAuth, so any client that supports remote MCP servers can connect.
-
-<details>
-<summary><b>Cursor</b></summary>
-
-In `~/.cursor/mcp.json`:
-
-```json
-{
-  "mcpServers": {
-    "mcpblaze": { "url": "https://mcp.mcpblaze.com" }
-  }
-}
-```
-
-</details>
-
-<details>
-<summary><b>VS Code</b></summary>
-
-In `.vscode/mcp.json`:
-
-```json
-{
-  "servers": {
-    "mcpblaze": { "type": "http", "url": "https://mcp.mcpblaze.com" }
-  }
-}
-```
-
-</details>
-
-<details>
-<summary><b>Codex</b></summary>
-
-In `~/.codex/config.toml`:
-
-```toml
-[mcp_servers.mcpblaze]
-url = "https://mcp.mcpblaze.com"
-```
-
-Then run `codex mcp login mcpblaze` to sign in.
-
-</details>
-
-<details>
-<summary><b>Claude Desktop and claude.ai</b></summary>
-
-Settings → Connectors → Add custom connector, then paste `https://mcp.mcpblaze.com`.
-
-</details>
+OAuth. In Claude Desktop or claude.ai: Customize → Connectors → Add custom connector, then paste
+`https://mcp.mcpblaze.com`.
 
 ## What stays open
 
