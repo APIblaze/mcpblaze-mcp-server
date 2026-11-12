@@ -70,8 +70,9 @@ from the spec you already have:
    delete it. Admins can override.
 
 No AI guesses your security. The rules come from the shape of your spec (which routes create
-things, which routes touch one thing by id), and you approve each one, written as a sentence,
-before anything turns on. Your backend does not change.
+things, which routes touch one thing by id). The CLI shows each one as a sentence for you to
+approve before anything turns on; through the MCP server, your agent locks every family it can
+unless you name some, and says what it locked. Your backend does not change.
 
 ## What it looks like
 
@@ -129,18 +130,16 @@ Anthropic and OpenAI decide.
 
 ## Tools
 
-What your agent can do once it is connected to `https://mcp.mcpblaze.com`:
+What your agent can do once it is connected to `https://mcp.mcpblaze.com`. Making a server is one call:
+`create_mcp_server` with your spec.
 
 | Tool | What it does |
 |---|---|
+| `create_mcp_server` | Turns an OpenAPI spec, or the URL of an API that publishes one at `/openapi.json`, `/openapi.yaml` or `/swagger.json`, into a hosted MCP server with GitHub sign-in and API keys. It locks every record family it can to the person who created the record (or only the ones you name), prepares the server for the Claude Connectors Directory (your agent asks whether to add the ChatGPT Directory), and returns its connector URL, its scorecard page, where it stands and what it locked. |
 | `list_mcp_servers` | Lists your MCP servers: name, URLs, status, and how callers get in. |
-| `get_mcp_server` | Describes one MCP server in full: its URLs, how callers get in, its access rules and its admins. |
-| `propose_access_rules` | Reads an OpenAPI spec and says, in plain sentences, which records can be locked to the person who created them. |
-| `create_mcp_server` | Creates an MCP server from an OpenAPI spec, locking the record families you choose (every one it can lock if you leave the list out; an empty list locks none), and returns its connector URL. It can also prepare the server for the Claude Connectors Directory and the ChatGPT Directory, and then returns its scorecard page too. |
-| `apply_access_rules` | Locks more record families to the person who created them on an existing MCP server, or switches all its rules off. Send the families locked now plus any new ones: leaving one out does not unlock it (its records can no longer be read or changed by anyone). To switch every rule off, send no families with `enforce` false. |
-| `update_mcp_server` | Changes a server's display name, target URL or on/off switch, or edits its tools (hide, rename, describe). |
+| `get_mcp_server` | Describes one MCP server in full (its URLs, how callers get in, its record families and which are locked, the directories it is prepared for, its admins) and where it stands on the way to the directories: steps done, the next step and its scorecard page. |
+| `update_mcp_server` | Changes a server: its display name, target URL or on/off switch; its tools (hide, rename, describe); which directories it is prepared for; or which record families are locked. Send every family you want locked: one you leave out is unlocked, open to anyone who can call the server (a rule someone wrote by hand stays as it is), and a name that is not one of the server's families changes nothing (the answer lists the right ones). To switch every rule off and keep them, send `enforce` false on its own; `enforce` true on its own switches them back on (a switch set with the dashboard or the CLI is shared by every server on its tenant, and is changed there). |
 | `delete_mcp_server` | Deletes an MCP server and everything attached to it. It needs an explicit confirmation, and it cannot be undone. |
-| `get_readiness` | Says where an MCP server stands on the way to the Claude Connectors Directory or the ChatGPT Directory: how many of its steps are done, whether it is ready to submit, and the next step. |
 
 The details (DNS, the listing fields, the reviewer account, the packet) are finished on the
 scorecard page or with `npx mcpblaze connector`.
