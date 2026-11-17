@@ -5,10 +5,10 @@
 <h1 align="center">MCPblaze</h1>
 
 <p align="center">
-  <strong>Get your API listed in Claude and ChatGPT.</strong><br>
-  One command turns your OpenAPI spec into an MCP server with sign-in and per-user rules,
-  checks it against the published requirements of the Claude Connectors Directory and the
-  ChatGPT Directory, and writes your submission.
+  <strong>Get your API into Claude and ChatGPT.</strong><br>
+  Point it at your OpenAPI spec and you get an MCP server with sign-in and per-user rules.
+  Then it checks it against what the Claude and ChatGPT directories ask for and writes up
+  your submission.
 </p>
 
 <p align="center">
@@ -23,56 +23,62 @@
 
 ## Quick start
 
-**In your terminal**, run the MCPblaze CLI's `connector` command on your OpenAPI spec (a URL or
-a local file). `npx` runs it, so there is nothing to install:
+Got an OpenAPI spec (a URL or a file)? Run this. Nothing to install:
 
 ```bash
 npx mcpblaze@latest connector https://ninopizzas.com/openapi.yaml
 ```
 
-It creates the MCP server, then walks you through every open step of the Claude Connectors
-Directory checklist (add `--compliant chatgpt` for the ChatGPT Directory) and links the scorecard
-page where you can finish. Stop any time: `npx mcpblaze connector <name> --status` shows what is
-left.
+That makes your MCP server, then walks you through whatever's left on the Claude Connectors
+Directory checklist. Want the ChatGPT Directory instead? Add `--compliant chatgpt`. You can stop
+any time and see what's left with `npx mcpblaze connector <name> --status`.
 
-Only want the MCP server? `npx mcpblaze create --target ./openapi.yaml` makes one at
-`https://<name>-<tenant>.mcpblaze.com/1.0.0/dev`. No login needed.
+Just want the MCP server and nothing else?
 
-**In your agent**, add MCPblaze's own MCP server:
+```bash
+npx mcpblaze create --target ./openapi.yaml
+```
+
+You get an address like `https://<name>-<tenant>.mcpblaze.com`. No login needed.
+
+### Or do it from your agent
+
+Add MCPblaze's own MCP server:
 
 ```bash
 claude mcp add --transport http mcpblaze https://mcp.mcpblaze.com
 ```
 
-Run `/mcp` in Claude Code and pick **mcpblaze** to sign in with GitHub. Then ask:
+Run `/mcp` in Claude Code, pick **mcpblaze** and sign in with GitHub. Then just ask:
 
 > Make an MCP server from https://ninopizzas.com/openapi.yaml and lock reservations to whoever
-> made them. Then tell me what is left before I can submit it to the Claude Connectors Directory.
+> made them. Then tell me what's left before I can submit it to the Claude Connectors Directory.
 
-Want to see it first? `npx mcpblaze demo` runs a small booking app on your machine with an MCP
+Want to try it first? `npx mcpblaze demo` runs a small booking app on your machine with an MCP
 server in front of it.
 
 ## Why
 
-An MCP server exists to let an agent *do things*: book the table, cancel the order, change the
-address. Most MCP servers reach the backend with one shared credential, so **every user of the
-agent can take every action on every record**. The agent acting for Alice can cancel Bob's
-reservation, and nothing in the stack knows the difference.
+The whole point of an MCP server is letting an agent actually do stuff: book a table, cancel an
+order, change an address. But most MCP servers talk to the backend with one shared key, so
+**anyone using the agent can do anything to any record**. The agent working for Ana can cancel
+Ben's reservation and nothing stops it.
 
-Fixing that by hand is three projects: an OAuth login for the MCP server, a way to know *which
-person* is behind each tool call, and per-record rules that check it. MCPblaze does all three
-from the spec you already have:
+Fixing that yourself is 3 separate projects: an OAuth login for the MCP server, a way to know
+which person is behind each tool call, and per-record rules that actually check it. MCPblaze does
+all 3 from the spec you already have:
 
-1. **An MCP endpoint**: your API's routes as tools.
-2. **Sign-in**: callers sign in (GitHub by default, or your own OAuth or OpenID Connect
-   provider), so every tool call carries a real person, not a shared key.
-3. **Per-user rules**: whoever *created* a record is the only one who can view, change or
-   delete it. Admins can override.
+1. **An MCP endpoint.** Your API's routes become tools.
+2. **Sign-in.** People sign in (GitHub by default, or your own OAuth or OpenID Connect provider),
+   so every tool call comes from a real person, not a shared key.
+3. **Per-user rules.** Only whoever *created* a record can view, change or delete it. Admins can
+   get to everything.
 
-No AI guesses your security. The rules come from the shape of your spec (which routes create
-things, which routes touch one thing by id). The CLI shows each one as a sentence for you to
-approve before anything turns on; through the MCP server, your agent locks every family it can
-unless you name some, and says what it locked. Your backend does not change.
+No AI is guessing at your security. The rules come from how your spec is laid out (which routes
+create things, which ones touch one thing by id). The CLI shows you each rule as a plain sentence
+and you approve it before anything turns on. Through the MCP server, your agent locks everything
+it can unless you tell it which ones, and tells you what it locked. You don't have to change your
+backend.
 
 ## What it looks like
 
@@ -82,85 +88,91 @@ $ npx mcpblaze create --target https://ninopizzas.com/openapi.yaml
 Create an MCP server
 
 ? MCP server name: nino
-→ Your MCP server will live at https://nino-<tenant>.mcpblaze.com/1.0.0/dev
+→ Your MCP server will live at https://nino-<tenant>.mcpblaze.com
 
-? How should callers sign in?  Sign in with an account (OAuth)
-? Which sign-in?  Hosted sign-in with GitHub
-? Do you want to prevent unauthorized users from taking unauthorized actions?  Yes
-
-  Reading your OpenAPI spec…
-? Lock these to the person who created them (or an admin):
+  Uncheck everything to skip.
+? Should only creators of a resource in the API be able to amend that resource?
   ◉ restaurants — only the person who created a restaurant, or an admin, can view or change it
   ◉ restaurants/{restaurantId}/reservations — only the person who created a reservation, or an admin, can view, change or delete it
   ◉ restaurants/{restaurantId}/tables — only the person who created a table, or an admin, can change or delete it
+? Who is the admin? Their email address (Enter to skip): nino@ninopizzas.com
 
 ✔ MCP server created!
-  ✓ https://nino-ninodefaulttenant.mcpblaze.com/1.0.0/dev — callers sign in with GitHub
-  ✓ restaurants, reservations + tables locked to their creator
 
-? Connect an agent to it now?  Claude Code (detected)
+  ✓ MCP server nino: your backend and widget use the API key; people and agents use an MCPblaze login (with GitHub)
+  ✓ Each person can only change the restaurants, reservations + tables they made (lists stay open: your backend filters them)
+  ✓ Backend key (shown once, save it): sk_…
+? Connect Claude Code to it now?  Yes
+? How should Claude Code authenticate to it?  Sign in with GitHub
   ✓ Claude Code connected — it will ask you to sign in with GitHub the first time you use it
+  ✓ admin: nino@ninopizzas.com — active on first sign-in
 ```
 
-From then on:
+After that:
 
-| The agent, acting for Alice, tries to… | Result |
+| The agent, working for Ana, tries to… | What happens |
 |---|---|
-| book a table (`POST /restaurants/{restaurantId}/reservations`) | **200**, and reservation 42 is recorded as Alice's |
+| book a table (`POST /restaurants/{restaurantId}/reservations`) | **200**, and reservation 42 is saved as Ana's |
 | read, change or cancel reservation 42 | **200** |
-| read or cancel Bob's reservation 43 | **403**: the agent is told plainly it isn't allowed |
-| the same, when Alice is an admin | **200**: admins can act on anything |
+| read or cancel Ben's reservation 43 | **403**, and the agent is told straight up it's not allowed |
+| the same thing, working for Nino (the admin) | **200**, admins can get to anything |
 
 ## Getting listed in Claude and ChatGPT
 
-`npx mcpblaze connector <name>` takes an MCP server through the Claude Connectors Directory
-checklist: your own
-MCP hostname (one CNAME), sign-in on the connector, the listing answers pre-filled from your
-spec, a reviewer account, a proof run that calls every tool, and the submission packet you paste
-into each portal. It asks only for what is missing, saves every answer as you give it, and says
-what is left at every step, in the terminal and on the scorecard page it links.
+`npx mcpblaze connector <name>` takes your MCP server through the Claude Connectors Directory
+checklist:
+
+- your own MCP hostname (one CNAME)
+- sign-in on the connector
+- the listing answers, pre-filled from your spec
+- a reviewer account
+- a test run that calls every tool
+- the submission packet you paste into each portal
+
+It only asks for what's missing, saves every answer as you go, and tells you what's left at every
+step, both in the terminal and on the scorecard page it links you to.
 
 - `npx mcpblaze connector <name> --status` shows the scorecard and the page to finish on.
-- `npx mcpblaze check <name> --directory-ready` prints the full readiness report: every blocker,
-  with its fix.
-- Add `--compliant chatgpt` to prepare it for the ChatGPT Directory instead.
+- `npx mcpblaze check <name> --directory-ready` prints the full readiness report, with a fix for
+  every blocker.
+- Add `--compliant chatgpt` to get it ready for the ChatGPT Directory instead.
 
-Passing the checks means the MCP server meets the requirements we can verify. You submit.
-Anthropic and OpenAI decide.
+Heads up: passing our checks means your MCP server meets everything we can verify. You still
+submit it yourself, and Anthropic and OpenAI make the call.
 
 ## Tools
 
-What your agent can do once it is connected to `https://mcp.mcpblaze.com`. Making a server is one call:
-`create_mcp_server` with your spec.
+What your agent can do once it's connected to `https://mcp.mcpblaze.com`. Making a server is just
+one call: `create_mcp_server` with your spec.
 
 | Tool | What it does |
 |---|---|
-| `create_mcp_server` | Turns an OpenAPI spec, or the URL of an API that publishes one at `/openapi.json`, `/openapi.yaml` or `/swagger.json`, into a hosted MCP server with GitHub sign-in and API keys. It locks every record family it can to the person who created the record (or only the ones you name), prepares the server for the Claude Connectors Directory (your agent asks whether to add the ChatGPT Directory), and returns its connector URL, its scorecard page, where it stands and what it locked. |
-| `list_mcp_servers` | Lists your MCP servers: name, URLs, status, and how callers get in. |
-| `get_mcp_server` | Describes one MCP server in full (its URLs, how callers get in, its record families and which are locked, the directories it is prepared for, its admins) and where it stands on the way to the directories: steps done, the next step and its scorecard page. |
-| `update_mcp_server` | Changes a server: its display name, target URL or on/off switch; its tools (hide, rename, describe); which directories it is prepared for; or which record families are locked. Send every family you want locked: one you leave out is unlocked, open to anyone who can call the server (a rule someone wrote by hand stays as it is), and a name that is not one of the server's families changes nothing (the answer lists the right ones). To switch every rule off and keep them, send `enforce` false on its own; `enforce` true on its own switches them back on (a switch set with the dashboard or the CLI is shared by every server on its tenant, and is changed there). |
-| `delete_mcp_server` | Deletes an MCP server and everything attached to it. It needs an explicit confirmation, and it cannot be undone. |
+| `create_mcp_server` | Turns an OpenAPI spec into a hosted MCP server with GitHub sign-in and API keys. You can also just give it your API's URL if it publishes a spec at `/openapi.json`, `/openapi.yaml` or `/swagger.json`. It locks every record family it can to whoever created the record (or just the ones you name), gets it ready for the Claude Connectors Directory (your agent asks if you want ChatGPT too), and gives you back the connector URL, the scorecard page, where it stands and what it locked. |
+| `list_mcp_servers` | Lists your MCP servers, 20 at a time: name, connector URL, whether it's on, and how callers get in. |
+| `get_mcp_server` | Everything about one MCP server: its URLs, how callers sign in, its record families and which ones are locked, its admins, keys and limits. Plus where it stands on the way to the directories: what's done, what's next and its scorecard page. |
+| `update_mcp_server` | Changes one server: display name, the API URL behind it, on or off, its tools (hide, rename, describe), which record families are locked, or which directories it's prepared for. Anything you leave out stays the same. Families and directories are full lists though, so send every family you want locked. Leave one out and it gets unlocked (rules someone wrote by hand stay). A family name that doesn't exist changes nothing, and the answer lists the real ones. To turn the rules off but keep them, send `enforce: false`; `enforce: true` turns them back on. If the switch was flipped from the dashboard or the CLI, that one covers every server on the tenant, so change it there. |
+| `delete_mcp_server` | Deletes an MCP server and everything attached to it (keys, rules and logs). Your agent has to check with you first, and there's no undo. |
 
-The details (DNS, the listing fields, the reviewer account, the packet) are finished on the
+The rest (DNS, the listing fields, the reviewer account, the packet) gets finished on the
 scorecard page or with `npx mcpblaze connector`.
 
 ## Connect from Claude Desktop or claude.ai
 
-`https://mcp.mcpblaze.com` uses Streamable HTTP and signs you in with GitHub through standard MCP
-OAuth. In Claude Desktop or claude.ai: Customize → Connectors → Add custom connector, then paste
-`https://mcp.mcpblaze.com`.
+`https://mcp.mcpblaze.com` uses Streamable HTTP, and you sign in with GitHub through standard MCP
+OAuth. In Claude Desktop or claude.ai, go to Customize → Connectors → Add custom connector and
+paste `https://mcp.mcpblaze.com`.
 
 ## What stays open
 
-Rules cover *one record by id*. These stay reachable by any signed-in caller, and the CLI says so
-in its output:
+Rules cover *one record by its id*. Anyone who's signed in can still reach these, and the CLI
+tells you so:
 
-- Lists such as `GET /restaurants`. A list returns whole records, so if that matters to you, add
-  a rule with `npx mcpblaze rule <name>`.
-- Creating, such as `POST /restaurants/{restaurantId}/reservations`. Creating is how ownership
-  gets recorded.
-- Action-style routes such as `POST /search` or `POST /reservations/{id}/cancel`.
-- Records that existed *before* the rules went on have no recorded creator, so only admins can
+- Lists, like `GET /restaurants`. A list returns whole records, so if that matters to you, filter
+  them in your backend or add a rule with `npx mcpblaze rule <name>`.
+- Creating, like `POST /restaurants/{restaurantId}/reservations`. That's how ownership gets
+  recorded in the first place.
+- Action-style routes, like `POST /search` or `POST /reservations/{id}/cancel`.
+- Records that existed *before* the rules went on don't have a creator saved, so only admins can
   touch them.
 
 ## Good to know
@@ -168,18 +180,18 @@ in its output:
 - **Your app runs on localhost?** `npx mcpblaze dev` puts an MCP server in front of it through a
   tunnel.
 - **No account needed to start.** MCP servers made while logged out expire after 30 days unless
-  you keep them: `npx mcpblaze login` offers to claim them into your account.
-- **Not sure where to start?** `npx mcpblaze skills` checks your folder for an API and suggests the
-  next step. Or tell your agent: *"Help me get my app listed in Claude and ChatGPT using
+  you keep them. `npx mcpblaze login` offers to claim them into your account.
+- **Not sure where to start?** `npx mcpblaze skills` checks your folder for an API and suggests
+  what to do next. Or tell your agent: *"Help me get my app listed in Claude and ChatGPT using
   npx mcpblaze@latest skills."*
 - **Everything else:** `mcpblaze` runs the [`apiblaze`](https://www.npmjs.com/package/apiblaze)
-  CLI under the MCP name and updates with it. `npx mcpblaze help --all` shows every command.
+  CLI under the MCP name and updates along with it. `npx mcpblaze help --all` shows every command.
 
-## About this repository
+## About this repo
 
-This repository holds MCPblaze's documentation and its MCP Registry entry (`server.json`). The MCP server itself
-is hosted at `https://mcp.mcpblaze.com`, and the CLI is published on npm as
+This repo holds MCPblaze's docs and its MCP Registry entry (`server.json`). The MCP server itself
+is hosted at `https://mcp.mcpblaze.com`, and the CLI is on npm as
 [`mcpblaze`](https://www.npmjs.com/package/mcpblaze). MCPblaze is built by
-[APIblaze](https://www.apiblaze.com). Questions: support@apiblaze.com.
+[APIblaze](https://www.apiblaze.com). Questions? support@apiblaze.com.
 
-The contents of this repository are released under the [MIT License](LICENSE).
+Everything in this repo is under the [MIT License](LICENSE).
