@@ -18,44 +18,32 @@
 
 ## Quick start
 
-Got an OpenAPI spec (a URL or a file)? Run this. Nothing to install, no login needed:
-
-```bash
-npx mcpblaze@latest create --target https://ninopizzas.com/openapi.yaml
-```
-
-You get your MCP server's address and a Scorecard link (sign in there to see it). That's step 1 of 4:
-
-| Step | Command | What you get |
-|---|---|---|
-| 1 | `npx mcpblaze create --target <spec>` | your MCP server and its Scorecard |
-| 2 | `npx mcpblaze build <name>` | one tool built around what people ask for |
-| 3 | `npx mcpblaze tools <name>` | keep only the tools people would ask for |
-| 4 | `npx mcpblaze ready <name>` | the directory checklist, then the packet you submit |
-
-`build` chains your API's calls into one tool for what people want most, like "all of a diner's
-reservations, from just an email". No AI involved, and every call still runs as the signed-in person.
-
-App only on your machine? Use `npx mcpblaze dev` for step 1. In a hurry? `npx mcpblaze ready <spec>`
-does step 1 and jumps to step 4 (that part needs an account). `connector`, its old name, still works.
-
-<p align="center">
-  <img src="assets/demo.gif" width="800" alt="Demo: an OpenAPI spec becomes an MCP server ready to submit; then Ana's agent books a table but can't cancel Ben's booking">
-</p>
-
-### Or do it from your agent
+**1. Connect it**
 
 ```bash
 claude mcp add --transport http mcpblaze https://mcp.mcpblaze.com
 ```
 
-Run `/mcp` in Claude Code, pick **mcpblaze** and sign in with GitHub. Then just ask:
+Run `/mcp` in Claude Code, pick **mcpblaze** and sign in with GitHub.
+
+In Claude Desktop or claude.ai: Customize → Connectors → Add custom connector, then paste
+`https://mcp.mcpblaze.com`. Other MCP apps may need a one-time OK from us first (support@apiblaze.com).
+
+**2. Ask for an MCP server**
 
 > Make an MCP server from https://ninopizzas.com/openapi.yaml and lock reservations to whoever
 > made them. Then tell me what's left before I can submit it to the Claude Connectors Directory.
 
-In Claude Desktop or claude.ai: Customize → Connectors → Add custom connector, then paste
-`https://mcp.mcpblaze.com`. Other MCP apps may need a one-time OK from us first (support@apiblaze.com).
+You get back its address, a Scorecard link and what it locked. Your agent will ask if you want it
+ready for ChatGPT too. No spec file? Just give it your API's URL, as long as the spec is at
+`/openapi.json`, `/openapi.yaml` or `/swagger.json`.
+
+**3. Finish on the Scorecard page**
+
+Click the Scorecard link and sign in. It opens your MCP server in the dashboard:
+
+- **MCP config:** how well AI apps can use your tools, what to fix first, Edit tools and the Tool builder.
+- **Listing on Claude and ChatGPT:** the directory checklist, one step at a time.
 
 ## Why
 
@@ -73,28 +61,7 @@ MCPblaze fixes that from the spec you already have:
 No AI guesses at your security. The rules come from how your spec is laid out, and each one reads
 as a plain sentence. Your backend only changes if you want lists filtered.
 
-## What it looks like
-
-A logged-in run, trimmed a bit:
-
-```text
-$ npx mcpblaze create --target https://ninopizzas.com/openapi.yaml
-
-? MCP server name: nino
-? Should only creators of a resource in the API be able to amend that resource?
-❯◉ restaurants — only the person who created a restaurant, or an admin, can view or change it
- ◉ restaurants/{restaurantId}/reservations — only the person who created a reservation, or an admin, can view, change or delete it
- ◉ restaurants/{restaurantId}/tables — only the person who created a table, or an admin, can change or delete it
-? Who is the admin? Their email address (Enter to skip): nino@ninopizzas.com
-✔ MCP server created!
-  MCP server:  https://nino-<tenant>.mcpblaze.com
-  Scorecard:   https://dashboard.apiblaze.com/directory/nino/1.0.0?…
-
-  ✓ Each person can only change the restaurants, reservations + tables they made (lists stay open: your backend filters them)
-  ✓ Backend key (shown once, save it): sk_…
-```
-
-Logged out, it picks the name for you (or pass `--name`). With the rules on:
+With the rules on:
 
 | The agent, working for Ana, tries to… | What happens |
 |---|---|
@@ -103,52 +70,15 @@ Logged out, it picks the name for you (or pass `--name`). With the rules on:
 | open or cancel Ben's reservation 43 | **403**, and it's told it's not allowed |
 | the same, working for Nino (the admin) | **works**, admins can get to anything |
 
-## Getting listed in Claude and ChatGPT
+<p align="center">
+  <img src="assets/demo.gif" width="800" alt="Demo: an OpenAPI spec becomes an MCP server ready to submit; then Ana's agent books a table but can't cancel Ben's booking">
+</p>
 
-`npx mcpblaze ready <name>` walks you through the Claude Connectors Directory checklist: your own MCP
-hostname (one CNAME), tool descriptions, sign-in and a reviewer account, the listing answers, a test
-run, one sign-in from your own Claude, then the packet you submit.
-
-It switches your server to listing mode right away (short errors, long answers cut) and may hide
-utility routes like `/health` itself. Then it asks only for what's missing. Just looking? `--status`
-shows what's left. You'll need an account, your app on a public https address (not a `dev` tunnel)
-and a privacy policy page.
-
-- `npx mcpblaze check <name> --directory-ready` prints the full report, with a fix for every blocker.
-- Add `--compliant chatgpt` for the ChatGPT Directory instead, or `--compliant all` for both.
-
-Passing our checks means you meet everything we can verify. You submit it, and Anthropic and OpenAI
-decide.
-
-## Make your tools easy for AI apps
-
-`npx mcpblaze mcp scorecard <name>` checks how well AI apps can use your tools and what to fix first.
-It's our own check, not Claude's or ChatGPT's, though some findings (like tool names over 64
-characters) also block a listing.
-
-- `--fix short-errors` sends a failed call back as one short line, not a dump.
-- `--test` asks a Claude model and a GPT model which tool they'd pick for your test cases (you write
-  those on the Scorecard page). Needs an account. Free tries first, then credits.
-
-Want your own wording? `npx mcpblaze mcp ops set <name> <tool> --input <input> --describe "…"`. Or
-do all of it on the **MCP server** tab in the dashboard.
-
-## Sign-in
-
-By default people sign in with GitHub (our GitHub app) and your backend uses an API key. The key
-`create` gives you expires after 14 to 30 days.
-
-Want your own Google, GitHub, Microsoft, Auth0 or OpenID Connect app? Add
-`https://callback.mcpblaze.com` to its callback URLs (a GitHub app takes only one, so use a new
-one), then tell your agent or run `npx mcpblaze tenant manage`. Don't paste the client secret in a
-chat: your agent gives you a one-time link for it. Switching later through your agent keeps our
-GitHub sign-in working until someone signs in with your app.
-
-## Tools at mcp.mcpblaze.com
+## Tools
 
 | Tool | What it does |
 |---|---|
-| `create_mcp_server` | Turns your OpenAPI spec (or your API's URL, if it serves its spec at `/openapi.json`, `/openapi.yaml` or `/swagger.json`) into a hosted MCP server with sign-in, API keys and per-user rules, and starts its Claude directory prep. Gives back its address, the Scorecard page and what it locked. |
+| `create_mcp_server` | Turns your OpenAPI spec (or your API's URL) into a hosted MCP server with sign-in, API keys and per-user rules, and starts its Claude directory prep. Gives back its address, the Scorecard link and what it locked. |
 | `list_mcp_servers` | Your MCP servers, 20 at a time: name, address, on or off, how people get in. |
 | `get_mcp_server` | One server in full, including sign-in, locked record types, where it stands for the directories, and how well AI apps can use its tools. |
 | `update_mcp_server` | Changes the display name, API URL, on or off, the spec (new routes become tools and get locked), tool text and hints, locked record types, directories or sign-in. What you leave out stays. |
@@ -156,7 +86,42 @@ GitHub sign-in working until someone signs in with your app.
 
 Heads up: `families` and `directories` are whole lists, so a record type you leave out gets unlocked.
 `enforce: false` turns the rules off but keeps them (if you turned them on in the CLI or the
-dashboard, turn them off there).
+dashboard, turn them off there). These tools work on a project's first MCP server.
+
+## Getting listed in Claude and ChatGPT
+
+The checklist covers your own MCP hostname (one CNAME), tool descriptions, sign-in and a reviewer
+account, the listing answers, a test run, one sign-in from your own Claude, then the packet you
+submit.
+
+You'll need an account, your app on a public https address (not a tunnel) and a privacy policy page.
+
+Passing our checks means you meet everything we can verify. You submit it, and Anthropic and OpenAI
+decide.
+
+## Make your tools easy for AI apps
+
+On the Scorecard page, **How well AI apps can use it** checks your tools and tells you what to fix
+first. It's our own check, not Claude's or ChatGPT's, but a few things it flags (like tool names over
+64 characters) also block a listing.
+
+- **Short, clear errors** sends a failed call back to the AI as one short line, not a dump.
+- **Test with AI models** asks a Claude model and a GPT model which tool they'd pick for your test
+  cases. Free tries first, then credits.
+
+Your agent can help too: `get_mcp_server` shows the same checks, and `update_mcp_server` can rewrite
+tool and input text.
+
+## Sign-in
+
+By default people sign in with GitHub (our GitHub app) and your backend uses an API key. The first
+backend key you get expires after 14 to 30 days.
+
+Want your own Google, GitHub, Microsoft, Auth0 or OpenID Connect app? Add
+`https://callback.mcpblaze.com` to its callback URLs (a GitHub app takes only one, so use a new
+one), then tell your agent. Don't paste the client secret in the chat: your agent gives you a
+one-time link for it. Switching later keeps our GitHub sign-in working until someone signs in with
+your app.
 
 ## What stays open
 
@@ -166,24 +131,37 @@ Rules cover *one record by its id*. Anyone signed in can still reach:
 - creating, like `POST /restaurants/{restaurantId}/reservations` (that's how the creator gets saved)
 - action routes like `POST /search` or `POST /orders/{id}/refund`
 - records your spec has no create route for, like `PATCH /profiles/{id}` with no `POST /profiles`
-- record types we can't lock safely (the CLI checklist and `get_mcp_server` say which and why)
+- record types we can't lock safely (`get_mcp_server` tells you which and why)
 
 Records made before the rules (or while they were off) have no creator, so only admins can touch
-them. New spec via `update_mcp_server`? New routes get locked. Via `npx mcpblaze spec set` or the
-dashboard? They come in open: run `npx mcpblaze rule <name>` in a terminal and tick them.
+them. Got a new version of your spec? Send it through `update_mcp_server` and the new routes get
+locked too.
 
-## Good to know
+## More than one MCP server?
 
-- **Up to 5 MCP servers on one API.** `npx mcpblaze mcp servers add nino --name "Back office"` makes
-  `ninomcp2`, with its own tools (none at first, or `--copy` the first one's), address and listing.
-  Same API, sign-in, users and rules. Needs an account. That's why a name can't end in `mcp`.
-- **No account needed to start.** Logged out, your MCP servers share one workspace. It's deleted
-  after 3 days if none of them gets a call, or after 30 days with no calls. Log in within 30 days
-  (`npx mcpblaze login`) to keep it.
-- **Not sure where to start?** Run `npx mcpblaze skills`, or tell your agent: *"Help me get my app
-  listed in Claude and ChatGPT using npx mcpblaze@latest skills."*
-- **Everything else:** `npx mcpblaze --help` for the main commands, `npx mcpblaze help --all` for the
-  rest.
+A project can have up to 5, each with its own tools, address and listing. They share the API,
+sign-in, users and rules. Add one in the dashboard (MCP config → Advanced) or with
+`npx mcpblaze mcp servers add <name> --name "Back office"`. Needs an account. That's also why a
+project name can't end in `mcp`.
+
+## Prefer a terminal?
+
+```bash
+npx mcpblaze@latest create --target https://ninopizzas.com/openapi.yaml
+```
+
+Nothing to install, no login needed. You get the address and the Scorecard link, same as above.
+Logged out, it picks the name for you (or pass `--name`).
+
+- `npx mcpblaze ready <name>` does the listing checklist in the terminal. It needs an account, and
+  it switches your server to listing mode right away (short errors, long answers cut). Just looking?
+  Add `--status`. Add `--compliant chatgpt` for ChatGPT, or `--compliant all` for both. Its old name,
+  `connector`, still works.
+- `npx mcpblaze dev` does the same as `create` for an app running on your machine.
+- `npx mcpblaze --help` shows the rest.
+
+Logged out, your MCP servers share one workspace. It's deleted after 3 days if none of them gets a
+call, or after 30 days with no calls. Log in within 30 days (`npx mcpblaze login`) to keep it.
 
 ## About this repo
 
