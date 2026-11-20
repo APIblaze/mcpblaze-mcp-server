@@ -165,7 +165,8 @@ call, or after 30 days with no calls. Log in within 30 days (`npx mcpblaze login
 
 ## About this repo
 
-MCPblaze's docs and its `server.json` for the official MCP Registry. Built by
+MCPblaze's docs, its `server.json` for the official MCP Registry, and an agent skill
+([`skills/mcpblaze`](skills/mcpblaze/SKILL.md)) that runs `npx mcpblaze@latest skills`. Built by
 [APIblaze](https://www.apiblaze.com). Questions? support@apiblaze.com.
 
 Everything in this repo is under the [MIT License](LICENSE).
